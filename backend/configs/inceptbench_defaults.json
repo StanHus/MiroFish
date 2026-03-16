@@ -1,0 +1,97 @@
+{
+  "population": {
+    "size": 30,
+    "archetypes": [
+      "honors_overachiever",
+      "debate_club_kid",
+      "quiet_thinker",
+      "socially_engaged_activist",
+      "disengaged_but_smart",
+      "esl_student",
+      "class_clown",
+      "politically_conservative"
+    ],
+    "distribution": {
+      "honors_overachiever": 0.15,
+      "debate_club_kid": 0.10,
+      "quiet_thinker": 0.15,
+      "socially_engaged_activist": 0.10,
+      "disengaged_but_smart": 0.15,
+      "esl_student": 0.10,
+      "class_clown": 0.10,
+      "politically_conservative": 0.15
+    }
+  },
+  "simulation": {
+    "default_grade": "11",
+    "default_subject": "General",
+    "max_batch_size": 50,
+    "timeout_seconds": 120
+  },
+  "archetypes": {
+    "honors_overachiever": {
+      "description": "High-achieving student focused on academic excellence",
+      "base_accuracy": 0.92,
+      "engagement": 0.95,
+      "knowledge_depth": "advanced",
+      "gpa_range": "3.8-4.0",
+      "mbti_pool": ["INTJ", "ISTJ", "ENTJ", "ESTJ"]
+    },
+    "debate_club_kid": {
+      "description": "Intellectually curious, loves to argue and discuss",
+      "base_accuracy": 0.78,
+      "engagement": 0.85,
+      "knowledge_depth": "advanced",
+      "gpa_range": "3.5-3.9",
+      "mbti_pool": ["ENTP", "ENTJ", "ENFP", "ESTP"]
+    },
+    "quiet_thinker": {
+      "description": "Thoughtful introvert who processes deeply",
+      "base_accuracy": 0.70,
+      "engagement": 0.50,
+      "knowledge_depth": "intermediate",
+      "gpa_range": "3.2-3.6",
+      "mbti_pool": ["INFJ", "INFP", "INTP", "INTJ"]
+    },
+    "socially_engaged_activist": {
+      "description": "Passionate about social issues and justice",
+      "base_accuracy": 0.68,
+      "engagement": 0.80,
+      "knowledge_depth": "intermediate",
+      "gpa_range": "3.3-3.7",
+      "mbti_pool": ["ENFJ", "ENFP", "ESFJ", "INFJ"]
+    },
+    "disengaged_but_smart": {
+      "description": "Capable but unmotivated student",
+      "base_accuracy": 0.55,
+      "engagement": 0.30,
+      "knowledge_depth": "advanced",
+      "gpa_range": "2.8-3.4",
+      "mbti_pool": ["ISTP", "INTP", "ISFP", "ESTP"]
+    },
+    "esl_student": {
+      "description": "English language learner with strong effort",
+      "base_accuracy": 0.45,
+      "engagement": 0.60,
+      "knowledge_depth": "basic",
+      "gpa_range": "2.5-3.2",
+      "mbti_pool": ["ISFJ", "INFP", "ISFP", "ISTJ"]
+    },
+    "class_clown": {
+      "description": "Prioritizes humor over academics",
+      "base_accuracy": 0.35,
+      "engagement": 0.40,
+      "knowledge_depth": "basic",
+      "gpa_range": "2.3-2.9",
+      "mbti_pool": ["ESFP", "ESTP", "ENFP", "ENTP"]
+    },
+    "politically_conservative": {
+      "description": "Student with traditional/conservative viewpoints",
+      "base_accuracy": 0.65,
+      "engagement": 0.70,
+      "knowledge_depth": "intermediate",
+      "gpa_range": "3.0-3.5",
+      "mbti_pool": ["ISTJ", "ESTJ", "INTJ", "ENTJ"]
+    }
+  }
+}
