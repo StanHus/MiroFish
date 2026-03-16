@@ -4,6 +4,18 @@ Student population simulation for educational content evaluation.
 
 Simulates how diverse student archetypes would respond to educational content, providing psychometric analysis and engagement predictions.
 
+## How It Works (Hybrid Approach)
+
+Traditional LLM simulation doesn't work well because LLMs know the correct answers and can't truly simulate student ignorance. MiroFish uses a **hybrid approach**:
+
+1. **LLM analyzes distractor appeal**: Asks the LLM to explain why each wrong answer might tempt specific student types (e.g., "ESL students might pick A due to simpler wording")
+
+2. **Probabilistic accuracy**: Each archetype has a base accuracy (e.g., `honors_overachiever` = 92%, `class_clown` = 35%). A random roll determines if the student answers correctly.
+
+3. **Intelligent wrong answers**: When a student gets it wrong, they pick the most tempting distractor for their archetype (identified by LLM analysis), not just a random wrong answer.
+
+This produces realistic distributions where high-performers excel and struggling students make plausible mistakes based on their cognitive patterns.
+
 ## Installation
 
 ```bash

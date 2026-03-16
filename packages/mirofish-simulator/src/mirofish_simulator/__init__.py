@@ -26,9 +26,9 @@ from .simulator import (
     DEFAULT_POPULATION,
 )
 
-from .profiles import StudentProfile
+from .profiles import StudentProfile, ARCHETYPE_TRAITS
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __all__ = [
     "Simulator",
     "SimulationResult",
@@ -38,5 +38,6 @@ __all__ = [
     "DistractorAnalysis",
     "simulate_content",
     "ARCHETYPES",
+    "ARCHETYPE_TRAITS",
     "DEFAULT_POPULATION",
 ]

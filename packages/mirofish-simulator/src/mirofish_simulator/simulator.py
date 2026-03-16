@@ -227,36 +227,116 @@ class Simulator:
         profile: StudentProfile,
         content: Dict[str, Any],
     ) -> StudentResponse:
-        """Simulate a single student's response."""
+        """
+        Simulate a single student's response using hybrid approach.
 
+        Hybrid approach:
+        1. LLM analyzes the appeal of each option for different student types
+        2. Archetype base_accuracy determines if student gets it correct
+        3. If incorrect, pick the most tempting distractor from LLM analysis
+        """
         text = content.get("text") or content.get("question", "")
         options = content.get("options", [])
         correct = content.get("correct_answer", "A")
-        grade = content.get("grade", "11")
-        subject = content.get("subject", "General")
+
+        # Get correct letter
+        if correct.isalpha():
+            correct_letter = correct.upper()
+        else:
+            correct_letter = chr(65 + int(correct))
 
         # If no LLM client, use probabilistic fallback
         if not self.client:
             return self._fallback_response(profile, options, correct)
 
-        # Build prompt
+        # Get distractor analysis from LLM (cached per question)
+        distractor_appeal = await self._analyze_distractors(content)
+
+        # Determine if student answers correctly based on archetype
+        traits = ARCHETYPE_TRAITS.get(profile.archetype, {})
+        base_accuracy = traits.get("base_accuracy", 0.5)
+
+        # Roll dice: does this student get it correct?
+        gets_correct = random.random() < base_accuracy
+
+        if gets_correct:
+            selected = correct_letter
+            reasoning = f"Correctly identified the answer"
+            confidence = 0.7 + random.uniform(0, 0.25)
+        else:
+            # Pick most tempting wrong answer for this archetype
+            selected = self._pick_tempting_distractor(
+                profile.archetype,
+                correct_letter,
+                distractor_appeal,
+                options
+            )
+            reasoning = distractor_appeal.get(
+                selected,
+                {profile.archetype: "seemed plausible"}
+            ).get(profile.archetype, "seemed like a reasonable choice")
+            confidence = 0.4 + random.uniform(0, 0.3)
+
+        # Time varies by engagement level
+        base_time = 45
+        time_var = (1 - traits.get("engagement", 0.5)) * 30
+        time_seconds = base_time + time_var + random.uniform(-10, 10)
+
+        return StudentResponse(
+            student_id=profile.student_id,
+            archetype=profile.archetype,
+            selected_answer=selected,
+            is_correct=gets_correct,
+            confidence=confidence,
+            time_seconds=max(10, time_seconds),
+            reasoning=reasoning,
+        )
+
+    async def _analyze_distractors(
+        self,
+        content: Dict[str, Any],
+    ) -> Dict[str, Dict[str, str]]:
+        """
+        Analyze why each option might appeal to different student types.
+
+        Returns dict mapping option letter -> {archetype -> reason}
+        """
+        # Use cached analysis if available
+        cache_key = hash(str(content.get("text") or content.get("question", "")))
+        if hasattr(self, "_distractor_cache") and cache_key in self._distractor_cache:
+            return self._distractor_cache[cache_key]
+
+        if not hasattr(self, "_distractor_cache"):
+            self._distractor_cache = {}
+
+        text = content.get("text") or content.get("question", "")
+        options = content.get("options", [])
+        subject = content.get("subject", "General")
+
         options_text = "\n".join(
             f"{chr(65 + i)}) {opt}" for i, opt in enumerate(options)
         )
 
-        prompt = f"""Simulate this student answering a {subject} question:
+        archetypes_list = ", ".join(ARCHETYPE_TRAITS.keys())
 
-STUDENT: {profile.archetype.replace('_', ' ')} | Grade {profile.grade} | GPA {profile.gpa_range} | {profile.mbti}
-Engagement: {profile.engagement_level:.0%} | Knowledge: {profile.knowledge_depth}
+        prompt = f"""Analyze this {subject} question and explain why each WRONG option might appeal to different student types.
 
-QUESTION (Grade {grade}):
+QUESTION:
 {text}
 
 OPTIONS:
 {options_text}
 
-Based on this student's profile, respond with JSON only:
-{{"answer": "A", "confidence": 0.8, "time_seconds": 45, "reasoning": "brief reason"}}"""
+Student archetypes: {archetypes_list}
+
+For each option (A, B, C, D), explain briefly why it might tempt specific student types (especially why wrong answers seem plausible).
+
+Respond with JSON only:
+{{
+  "A": {{"class_clown": "seems funny", "esl_student": "simpler wording"}},
+  "B": {{"quiet_thinker": "overthinking leads here"}},
+  ...
+}}"""
 
         try:
             response = await self.client.chat.completions.create(
@@ -265,14 +345,15 @@ Based on this student's profile, respond with JSON only:
                     {
                         "role": "system",
                         "content": (
-                            "You simulate high school students answering questions. "
-                            "Respond ONLY with valid JSON. answer must be A/B/C/D."
+                            "You analyze educational question distractors. "
+                            "Explain why wrong answers might appeal to specific student types. "
+                            "Respond ONLY with valid JSON."
                         ),
                     },
                     {"role": "user", "content": prompt},
                 ],
-                temperature=0.7,
-                max_tokens=100,
+                temperature=0.5,
+                max_tokens=500,
             )
 
             result_text = response.choices[0].message.content.strip()
@@ -283,21 +364,36 @@ Based on this student's profile, respond with JSON only:
                 if result_text.startswith("json"):
                     result_text = result_text[4:]
 
-            result = json.loads(result_text)
-            selected = result.get("answer", "A").upper()
-
-            return StudentResponse(
-                student_id=profile.student_id,
-                archetype=profile.archetype,
-                selected_answer=selected,
-                is_correct=self._check_correct(selected, correct, options),
-                confidence=float(result.get("confidence", 0.5)),
-                time_seconds=float(result.get("time_seconds", 45)),
-                reasoning=result.get("reasoning", ""),
-            )
+            analysis = json.loads(result_text)
+            self._distractor_cache[cache_key] = analysis
+            return analysis
 
         except Exception:
-            return self._fallback_response(profile, options, correct)
+            # Fallback: no specific distractor reasoning
+            return {}
+
+    def _pick_tempting_distractor(
+        self,
+        archetype: str,
+        correct_letter: str,
+        distractor_appeal: Dict[str, Dict[str, str]],
+        options: List[str],
+    ) -> str:
+        """Pick the most tempting wrong answer for this archetype."""
+        all_opts = ["A", "B", "C", "D"][:len(options)]
+        wrong_opts = [o for o in all_opts if o != correct_letter]
+
+        if not wrong_opts:
+            return "A"
+
+        # Check if any distractor specifically appeals to this archetype
+        for opt in wrong_opts:
+            if opt in distractor_appeal:
+                if archetype in distractor_appeal[opt]:
+                    return opt
+
+        # Otherwise pick randomly from wrong options
+        return random.choice(wrong_opts)
 
     def _fallback_response(
         self,
