@@ -1,0 +1,82 @@
+{
+  "questions": [
+    {
+      "question_id": "GOV-001",
+      "stem": "Which clause of the 14th Amendment has been most frequently used by the Supreme Court to apply the Bill of Rights to state governments?",
+      "options": [
+        "The Privileges or Immunities Clause",
+        "The Due Process Clause",
+        "The Equal Protection Clause",
+        "The Citizenship Clause"
+      ],
+      "correct_index": 1,
+      "topic": "14th Amendment / Incorporation",
+      "skill": "recall"
+    },
+    {
+      "question_id": "GOV-002",
+      "stem": "In Dobbs v. Jackson Women's Health Organization (2022), the Supreme Court held that the Constitution does not confer a right to abortion. Which of the following best describes the constitutional reasoning used by the majority?",
+      "options": [
+        "The right to abortion violates the Establishment Clause of the First Amendment",
+        "The right to abortion is not deeply rooted in the nation's history and tradition, and therefore is not protected by the Due Process Clause",
+        "The Commerce Clause does not grant Congress the power to regulate medical procedures",
+        "The Tenth Amendment reserves all healthcare decisions exclusively to the states"
+      ],
+      "correct_index": 1,
+      "topic": "Substantive Due Process / Dobbs",
+      "skill": "analysis"
+    },
+    {
+      "question_id": "GOV-003",
+      "stem": "A state legislature passes a law requiring all public school students to begin each day with a moment of silent prayer. Under the Lemon test established in Lemon v. Kurtzman (1971), which of the following would MOST likely be the basis for a court striking down this law?",
+      "options": [
+        "The law lacks a secular legislative purpose",
+        "The law imposes an undue burden on interstate commerce",
+        "The law violates the Second Amendment right to bear arms",
+        "The law discriminates on the basis of race in violation of the Equal Protection Clause"
+      ],
+      "correct_index": 0,
+      "topic": "First Amendment / Establishment Clause",
+      "skill": "application"
+    },
+    {
+      "question_id": "GOV-004",
+      "stem": "What is the primary function of the elastic clause (Necessary and Proper Clause) in Article I, Section 8 of the Constitution?",
+      "options": [
+        "It grants the president emergency powers during wartime",
+        "It allows Congress to pass laws needed to carry out its enumerated powers",
+        "It permits the Supreme Court to declare laws unconstitutional",
+        "It gives states the right to nullify federal legislation"
+      ],
+      "correct_index": 1,
+      "topic": "Congressional Powers / Elastic Clause",
+      "skill": "recall"
+    },
+    {
+      "question_id": "GOV-005",
+      "stem": "Which of the following scenarios BEST illustrates the concept of selective incorporation?",
+      "options": [
+        "Congress passes a law that applies differently in each state based on population",
+        "The Supreme Court rules that the Second Amendment right to bear arms applies to state governments through the 14th Amendment",
+        "A state court interprets its own constitution to provide broader protections than the federal Constitution",
+        "The president issues an executive order that supersedes a state law"
+      ],
+      "correct_index": 1,
+      "topic": "14th Amendment / Selective Incorporation",
+      "skill": "application"
+    },
+    {
+      "question_id": "GOV-006",
+      "stem": "A political scientist studying voter turnout finds that states with same-day voter registration have turnout rates approximately 5-7 percentage points higher than states requiring advance registration. Based on this finding and your knowledge of political participation, which of the following conclusions is MOST supported?",
+      "options": [
+        "Same-day registration causes higher voter turnout in all demographic groups equally",
+        "Reducing institutional barriers to registration is associated with increased political participation",
+        "States with same-day registration have more educated populations, which explains the higher turnout",
+        "Advance registration requirements are unconstitutional under the 15th Amendment"
+      ],
+      "correct_index": 1,
+      "topic": "Political Participation / Voter Turnout",
+      "skill": "analysis"
+    }
+  ]
+}

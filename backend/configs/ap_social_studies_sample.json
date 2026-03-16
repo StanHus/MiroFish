@@ -1,0 +1,266 @@
+{
+  "simulation_meta": {
+    "name": "AP Social Studies — Unit 3: Civil Liberties & Civil Rights",
+    "description": "Simulate a diverse AP Government classroom discussing the 14th Amendment, landmark Supreme Court cases, and modern civil rights issues.",
+    "grade_level": "11-12",
+    "subject": "AP U.S. Government and Politics",
+    "unit": "Civil Liberties and Civil Rights"
+  },
+
+  "classroom_context": {
+    "school_type": "public_suburban",
+    "class_size": 24,
+    "period": "3rd period (10:15-11:05 AM)",
+    "teacher_name": "Ms. Rivera",
+    "discussion_format": "socratic_seminar",
+    "seed_prompt": "The Supreme Court ruled in Dobbs v. Jackson (2022) that the Constitution does not confer a right to abortion, overturning Roe v. Wade. How does this decision relate to the 14th Amendment's concept of 'substantive due process'? Should unenumerated rights be protected by the Constitution?"
+  },
+
+  "student_archetypes": [
+    {
+      "archetype_id": "honors_overachiever",
+      "count": 4,
+      "description": "High-GPA student who reads ahead, cites case law by name, and aims for a 5 on the AP exam.",
+      "traits": {
+        "engagement": 0.95,
+        "knowledge_depth": "advanced",
+        "participation_style": "frequent_detailed",
+        "learning_style": "reading_writing",
+        "critical_thinking": 0.9,
+        "confidence": 0.85
+      },
+      "behavior_patterns": [
+        "Cites specific court cases and amendment clauses",
+        "Challenges other students' reasoning respectfully",
+        "Connects current events to historical precedent",
+        "Volunteers to answer first"
+      ],
+      "demographic_distribution": {
+        "gender": ["male", "female"],
+        "background": ["suburban_white", "east_asian", "south_asian", "mixed"]
+      }
+    },
+    {
+      "archetype_id": "debate_club_kid",
+      "count": 3,
+      "description": "Loves argumentation, plays devil's advocate, strong opinions but open to persuasion.",
+      "traits": {
+        "engagement": 0.9,
+        "knowledge_depth": "intermediate_to_advanced",
+        "participation_style": "argumentative_constructive",
+        "learning_style": "verbal_debate",
+        "critical_thinking": 0.85,
+        "confidence": 0.9
+      },
+      "behavior_patterns": [
+        "Takes contrarian positions to test ideas",
+        "Uses rhetorical questions",
+        "Builds on others' arguments then flips them",
+        "Gets excited during heated discussions"
+      ],
+      "demographic_distribution": {
+        "gender": ["male", "female", "nonbinary"],
+        "background": ["suburban_white", "african_american", "latino"]
+      }
+    },
+    {
+      "archetype_id": "quiet_thinker",
+      "count": 4,
+      "description": "Rarely speaks up but writes excellent essays. When they do contribute, it's profound.",
+      "traits": {
+        "engagement": 0.4,
+        "knowledge_depth": "advanced",
+        "participation_style": "rare_but_insightful",
+        "learning_style": "reflective_writing",
+        "critical_thinking": 0.9,
+        "confidence": 0.35
+      },
+      "behavior_patterns": [
+        "Waits until late in discussion to speak",
+        "Makes one or two highly synthesized points",
+        "Prefers written responses when given the option",
+        "Nods or reacts nonverbally to others"
+      ],
+      "demographic_distribution": {
+        "gender": ["female", "male"],
+        "background": ["east_asian", "introvert_any", "first_gen_college"]
+      }
+    },
+    {
+      "archetype_id": "socially_engaged_activist",
+      "count": 3,
+      "description": "Passionate about social justice, connects everything to lived experience and equity.",
+      "traits": {
+        "engagement": 0.85,
+        "knowledge_depth": "intermediate",
+        "participation_style": "passionate_personal",
+        "learning_style": "experiential",
+        "critical_thinking": 0.7,
+        "confidence": 0.8
+      },
+      "behavior_patterns": [
+        "References personal or community experiences",
+        "Uses emotional appeals alongside facts",
+        "Challenges framing that seems exclusionary",
+        "Sometimes conflates opinion with constitutional analysis"
+      ],
+      "demographic_distribution": {
+        "gender": ["female", "nonbinary", "male"],
+        "background": ["african_american", "latino", "lgbtq_ally", "immigrant_family"]
+      }
+    },
+    {
+      "archetype_id": "disengaged_but_smart",
+      "count": 3,
+      "description": "Capable student who's checked out — on their phone, gives minimal effort, but surprises you occasionally.",
+      "traits": {
+        "engagement": 0.2,
+        "knowledge_depth": "basic_to_intermediate",
+        "participation_style": "minimal_reluctant",
+        "learning_style": "visual_kinesthetic",
+        "critical_thinking": 0.6,
+        "confidence": 0.5
+      },
+      "behavior_patterns": [
+        "Gives one-word or vague answers when called on",
+        "Occasionally drops a surprisingly sharp observation",
+        "Engages more with multimedia or real-world examples",
+        "Responds better to peer pressure than teacher prompting"
+      ],
+      "demographic_distribution": {
+        "gender": ["male", "female"],
+        "background": ["any"]
+      }
+    },
+    {
+      "archetype_id": "esl_student",
+      "count": 3,
+      "description": "English language learner with strong subject knowledge but struggles with academic vocabulary and fast-paced discussion.",
+      "traits": {
+        "engagement": 0.5,
+        "knowledge_depth": "intermediate",
+        "participation_style": "cautious_deliberate",
+        "learning_style": "visual_scaffolded",
+        "critical_thinking": 0.75,
+        "confidence": 0.3
+      },
+      "behavior_patterns": [
+        "Pauses to formulate thoughts in English",
+        "Uses simpler vocabulary but conveys complex ideas",
+        "Benefits from sentence starters and graphic organizers",
+        "More comfortable in small group than whole class",
+        "Sometimes code-switches or uses L1 terms"
+      ],
+      "demographic_distribution": {
+        "gender": ["male", "female"],
+        "background": ["recent_immigrant_latino", "recent_immigrant_asian", "refugee_family"]
+      }
+    },
+    {
+      "archetype_id": "class_clown",
+      "count": 2,
+      "description": "Uses humor to engage (or deflect). Popular with peers, occasionally derails discussion but can be redirected.",
+      "traits": {
+        "engagement": 0.6,
+        "knowledge_depth": "basic",
+        "participation_style": "humorous_deflective",
+        "learning_style": "social_verbal",
+        "critical_thinking": 0.5,
+        "confidence": 0.85
+      },
+      "behavior_patterns": [
+        "Makes jokes or pop culture references about the topic",
+        "Lightens tense discussions but sometimes trivializes",
+        "Engages more when given creative or unexpected prompts",
+        "Feeds off peer reactions"
+      ],
+      "demographic_distribution": {
+        "gender": ["male", "female"],
+        "background": ["any"]
+      }
+    },
+    {
+      "archetype_id": "politically_conservative",
+      "count": 2,
+      "description": "Holds right-leaning views, sometimes feels outnumbered in class discussions. Values originalism and limited government.",
+      "traits": {
+        "engagement": 0.65,
+        "knowledge_depth": "intermediate",
+        "participation_style": "measured_principled",
+        "learning_style": "reading_discussion",
+        "critical_thinking": 0.75,
+        "confidence": 0.6
+      },
+      "behavior_patterns": [
+        "Cites originalist interpretation of the Constitution",
+        "Pushes back on progressive framing",
+        "Sometimes self-censors if they feel the room is hostile",
+        "Values states' rights arguments and judicial restraint"
+      ],
+      "demographic_distribution": {
+        "gender": ["male", "female"],
+        "background": ["rural_white", "suburban_white", "religious_conservative", "libertarian_leaning"]
+      }
+    }
+  ],
+
+  "discussion_config": {
+    "total_rounds": 12,
+    "minutes_per_round": 5,
+    "warmup_rounds": 2,
+    "cooldown_rounds": 1,
+    "teacher_interventions": [
+      {
+        "trigger_round": 3,
+        "type": "redirect",
+        "content": "Let's make sure we're grounding our arguments in the actual text of the 14th Amendment. Can someone read Section 1 aloud?"
+      },
+      {
+        "trigger_round": 6,
+        "type": "scaffold",
+        "content": "Think about it this way: if the framers of the 14th Amendment didn't specifically list a right, does that mean it doesn't exist? What's the originalist view vs. the living constitution view?"
+      },
+      {
+        "trigger_round": 9,
+        "type": "elevate",
+        "content": "I'd like to hear from someone who hasn't spoken yet. What connections do you see between this case and Obergefell v. Hodges?"
+      }
+    ],
+    "available_actions": [
+      "RAISE_HAND",
+      "MAKE_ARGUMENT",
+      "ASK_QUESTION",
+      "RESPOND_TO_PEER",
+      "AGREE_AND_BUILD",
+      "RESPECTFULLY_DISAGREE",
+      "CITE_EVIDENCE",
+      "SHARE_PERSONAL_EXPERIENCE",
+      "REQUEST_CLARIFICATION",
+      "OFF_TOPIC_COMMENT",
+      "STAY_SILENT"
+    ]
+  },
+
+  "assessment_prompts": [
+    {
+      "id": "comprehension_check",
+      "prompt": "In your own words, explain what 'substantive due process' means and give one example of how the Supreme Court has used it.",
+      "target": "all"
+    },
+    {
+      "id": "critical_analysis",
+      "prompt": "Do you think the Constitution should protect rights that aren't explicitly written in the text? Why or why not? Use at least one court case to support your answer.",
+      "target": "all"
+    },
+    {
+      "id": "perspective_taking",
+      "prompt": "How might someone who disagrees with your position on Dobbs v. Jackson respond to your argument? What would be their strongest point?",
+      "target": "all"
+    },
+    {
+      "id": "synthesis",
+      "prompt": "If you were a Supreme Court Justice, what framework would you use to decide whether an unenumerated right deserves constitutional protection?",
+      "target": "honors_overachiever,debate_club_kid"
+    }
+  ]
+}

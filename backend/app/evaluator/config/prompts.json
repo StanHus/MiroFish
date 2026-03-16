@@ -1,0 +1,74 @@
+{
+  "question_qc": {
+    "distractor_checks": {
+      "grammatical_parallel": {
+        "prompt": "You are evaluating whether answer choices have consistent grammatical structure.\nQuestion: {question}\nAnswer Choices:\n{all_choices}\nTask: Determine if all choices follow the same grammatical pattern.\nExamples of GOOD parallelism:\nAll complete phrases: \"The right to privacy is implied by...\", \"The commerce clause grants...\", \"The equal protection clause requires...\"\nAll single concepts: \"judicial review\", \"executive privilege\", \"legislative override\"\nExamples of BAD parallelism:\nMixed: \"judicial review\", \"when the president vetoes a bill\", \"legislative\", \"The courts have historically...\"\nIMPORTANT: Minor variations are acceptable. Fail only when structure differences give unfair cues.\n<quality_check>\n<score>1</score>\n<reasoning>Brief explanation</reasoning>\n</quality_check>",
+        "response_format": "xml"
+      },
+      "plausibility": {
+        "prompt": "You are evaluating whether incorrect answer choices are plausible distractors for an AP US Government question.\nQuestion: {question}\nAnswer Choices:\n{all_choices}\nCorrect Answer: {correct_answer}\nTask: Evaluate if each INCORRECT choice is a believable wrong answer.\nGOOD distractors for AP Gov:\n- Represent common student misconceptions about constitutional law\n- Confuse similar concepts (e.g., Due Process vs Equal Protection)\n- Mix up court cases or their holdings\n- Apply correct reasoning to the wrong context\nBAD distractors:\n- Are obviously absurd (e.g., 'The Second Amendment' for a First Amendment question)\n- Reference irrelevant legal concepts\n- Would fool no student who studied the material\nReturn:\n1 if all incorrect choices are plausible\n0 if any is obviously wrong or implausible\n<quality_check>\n<score>1</score>\n<reasoning>Brief explanation</reasoning>\n</quality_check>",
+        "response_format": "xml"
+      },
+      "homogeneity": {
+        "prompt": "You are evaluating whether all answer choices belong to the same conceptual category.\nQuestion: {question}\nAnswer Choices:\n{all_choices}\nTask: Determine if all choices address the same type of concept.\nFor AP Government questions, GOOD homogeneity means:\n- All choices are constitutional clauses\n- All choices are court case holdings\n- All choices are governmental powers or principles\n- All choices are policy outcomes or effects\nBAD homogeneity:\n- Mix of clauses and historical events\n- Mix of abstract principles and specific people\n- Mix of constitutional concepts and policy opinions\n1 if all choices belong to same conceptual category\n0 if choices span different categories\n<quality_check>\n<score>1</score>\n<reasoning>Brief explanation</reasoning>\n</quality_check>",
+        "response_format": "xml"
+      },
+      "specificity_balance": {
+        "prompt": "You are evaluating whether answer choices have similar levels of detail and specificity.\nQuestion: {question}\nAnswer Choices:\n{all_choices}\nTask: Determine if choices are at similar specificity levels.\nFor AP Government:\nGOOD: All at same detail level — all reference specific clauses, or all state general principles\nBAD: One choice is a full paragraph while others are short phrases. Or one is extremely specific while others are vague.\n1 if all choices are at similar specificity levels\n0 if significant differences in specificity\n<quality_check>\n<score>1</score>\n<reasoning>Brief explanation</reasoning>\n</quality_check>",
+        "response_format": "xml"
+      },
+      "too_close": {
+        "prompt": "You are an expert in AP US Government assessment design. Identify if any distractor is TOO CLOSE to the correct answer, making the question unfair.\n\nA distractor is TOO CLOSE if:\n1. Synonymous or near-synonymous to the correct answer\n2. Differs only in trivial degree when the question doesn't support that distinction\n3. Both correct and distractor are equally defensible from the source material\n4. Creates a double-key risk (two answers could be correct)\n\nQuestion: {question}\nOptions:\n{all_choices}\nCorrect Answer: {correct_letter}\n\nReturn ONLY valid JSON:\n{\"too_close\": true/false, \"problematic_options\": [\"A\"], \"explanation\": \"...\"}",
+        "response_format": "json"
+      }
+    },
+    "question_checks": {
+      "standard_alignment": {
+        "prompt": "You are evaluating whether this AP US Government question properly assesses the stated learning objective or topic.\nQuestion: {question}\nTopic/Standard: {standard_formatted}\nAnswer Choices:\n{all_choices}\nTask: Does this question directly test knowledge of the stated topic?\nFor AP Government, check:\n- Does a 14th Amendment question actually test 14th Amendment concepts?\n- Does a federalism question actually test federal vs state power?\n- Is the cognitive demand appropriate (recall vs analysis vs evaluation)?\nIf no standard is provided, score 1.\n1 if aligned, 0 if misaligned\n<quality_check>\n<score>1</score>\n<reasoning>Brief explanation</reasoning>\n</quality_check>",
+        "response_format": "xml"
+      },
+      "clarity_precision": {
+        "prompt": "You are evaluating whether this AP US Government question is clearly written and unambiguous.\nQuestion: {question}\nAnswer Choices:\n{all_choices}\nCheck for:\n- Ambiguous pronouns or references\n- Double negatives\n- Overly complex syntax that obscures the actual question\n- Multiple possible interpretations\n- Unnecessarily long or convoluted stems\n- Legal/constitutional terms used imprecisely\n1 if clear and precise, 0 if clarity issues exist\n<quality_check>\n<score>1</score>\n<reasoning>Brief explanation</reasoning>\n</quality_check>",
+        "response_format": "xml"
+      },
+      "single_correct_answer": {
+        "prompt": "You are validating that this AP US Government MCQ has exactly one defensibly correct answer.\nQuestion: {question}\nAnswer Choices:\n{all_choices}\nIndicated Correct Answer: {correct_answer}\nTask: Verify exactly one answer is clearly correct based on established constitutional law, political science, and AP curriculum.\nRed flags:\n- Multiple answers could be argued as correct\n- The 'correct' answer requires a debatable interpretation\n- The question asks for opinions disguised as facts\n- Answer depends on which constitutional scholar you ask\n1 if exactly one defensible correct answer, 0 otherwise\n<quality_check>\n<score>1</score>\n<reasoning>Brief explanation</reasoning>\n</quality_check>",
+        "response_format": "xml"
+      },
+      "cognitive_level": {
+        "prompt": "You are assessing the cognitive level (Bloom's / Webb's DOK) of this AP US Government question.\nQuestion: {question}\nAnswer Choices:\n{all_choices}\nTopic: {standard_formatted}\n\nClassify this question:\n- DOK 1 (Recall): Memorize definitions, identify facts\n- DOK 2 (Skill/Concept): Apply concepts, compare, classify\n- DOK 3 (Strategic Thinking): Analyze, evaluate arguments, use evidence\n- DOK 4 (Extended Thinking): Synthesize across sources, design, create\n\nFor AP US Government, a good test should have:\n- ~20% DOK 1 (foundational knowledge)\n- ~40% DOK 2 (conceptual application)\n- ~30% DOK 3 (analytical reasoning)\n- ~10% DOK 4 (synthesis/evaluation)\n\nReturn JSON:\n{\"dok_level\": 1-4, \"bloom_level\": \"remember|understand|apply|analyze|evaluate|create\", \"reasoning\": \"...\"}",
+        "response_format": "json"
+      },
+      "factual_accuracy": {
+        "prompt": "You are a constitutional law expert verifying the factual accuracy of this AP US Government question.\nQuestion: {question}\nAnswer Choices:\n{all_choices}\nCorrect Answer: {correct_answer}\n\nVerify:\n1. Is the stated correct answer actually correct according to established constitutional law and AP curriculum?\n2. Are court cases, amendments, clauses, and legal principles referenced accurately?\n3. Are historical facts and dates accurate?\n4. Are any misleading or technically incorrect statements in the stem or options?\n\n1 if factually accurate, 0 if any factual errors exist\n<quality_check>\n<score>1</score>\n<reasoning>Brief explanation — cite the specific legal/factual basis</reasoning>\n</quality_check>",
+        "response_format": "xml"
+      }
+    }
+  },
+  "explanation_qc": {
+    "correct": {
+      "correctness_explanation": {
+        "prompt": "Evaluate feedback for a CORRECT answer on an AP Government question.\nQuestion: {question}\nCorrect Answer: {correct_answer}\nFeedback: {feedback}\nDoes the feedback explicitly explain WHY this answer is correct, with reference to constitutional principles, court precedent, or political science concepts?\n1 if yes, 0 if generic praise only\n<quality_check>\n<score>1</score>\n<reasoning>Brief explanation</reasoning>\n</quality_check>",
+        "response_format": "xml"
+      },
+      "evidence_citation": {
+        "prompt": "Evaluate feedback for a CORRECT answer on an AP Government question.\nQuestion: {question}\nCorrect Answer: {correct_answer}\nFeedback: {feedback}\nDoes the feedback cite specific constitutional text, court cases, or established political science concepts as supporting evidence?\n1 if specific evidence is cited, 0 if vague\n<quality_check>\n<score>1</score>\n<reasoning>Brief explanation</reasoning>\n</quality_check>",
+        "response_format": "xml"
+      }
+    },
+    "distractor": {
+      "specific_error": {
+        "prompt": "Evaluate feedback for an INCORRECT answer on an AP Government question.\nQuestion: {question}\nIncorrect Answer: {distractor}\nCorrect Answer: {correct_answer}\nFeedback: {feedback}\nDoes the feedback explain WHY this specific choice is wrong, addressing the particular misconception?\n1 if specific to this distractor, 0 if generic\n<quality_check>\n<score>1</score>\n<reasoning>Brief explanation</reasoning>\n</quality_check>",
+        "response_format": "xml"
+      },
+      "misconception_diagnosis": {
+        "prompt": "Evaluate feedback for an INCORRECT answer on an AP Government question.\nQuestion: {question}\nIncorrect Answer: {distractor}\nCorrect Answer: {correct_answer}\nFeedback: {feedback}\nDoes the feedback identify the likely misconception? For AP Gov, common misconceptions include:\n- Confusing similar amendments (1st vs 14th)\n- Mixing up court case holdings\n- Misunderstanding separation of powers\n- Confusing federalism concepts\n1 if misconception is diagnosed, 0 if not\n<quality_check>\n<score>1</score>\n<reasoning>Brief explanation</reasoning>\n</quality_check>",
+        "response_format": "xml"
+      },
+      "correct_guidance": {
+        "prompt": "Evaluate feedback for an INCORRECT answer on an AP Government question.\nQuestion: {question}\nIncorrect Answer: {distractor}\nCorrect Answer: {correct_answer}\nFeedback: {feedback}\nDoes the feedback guide the student toward the correct answer with clear explanation?\n1 if yes, 0 if not\n<quality_check>\n<score>1</score>\n<reasoning>Brief explanation</reasoning>\n</quality_check>",
+        "response_format": "xml"
+      }
+    }
+  }
+}
