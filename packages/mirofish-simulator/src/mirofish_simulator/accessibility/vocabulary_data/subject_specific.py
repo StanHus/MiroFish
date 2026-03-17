@@ -193,6 +193,81 @@ SOCIAL_STUDIES_VOCABULARY = {
 }
 
 
+# ── AP Government & Politics Vocabulary ─────────────────────────────────────
+# Comprehensive vocabulary for AP US Government and Politics course
+
+AP_GOVERNMENT_VOCABULARY = {
+    # Founding Documents & Principles (Grade 9-12)
+    "federalist": 10, "antifederalist": 10, "constitutional": 9, "unconstitutional": 10,
+    "framers": 10, "founders": 8, "ratification": 10, "preamble": 8,
+    "articles": 7, "confederation": 9, "compromise": 7, "convention": 8,
+
+    # Core Concepts from Federalist Papers
+    "faction": 10, "factions": 10, "ambition": 8, "counteract": 10, "counteracting": 10,
+    "tyrannical": 10, "usurpation": 12, "encroachment": 11, "consolidation": 10,
+    "auxiliary": 10, "precautions": 9, "enlightened": 9, "statesmen": 10,
+    "mischief": 7, "remedy": 8, "oppression": 9, "despotism": 11, "despot": 10,
+
+    # Separation of Powers & Checks and Balances
+    "separation": 7, "checks": 6, "balances": 6, "coequal": 11, "coordinate": 8,
+    "vested": 10, "bestow": 9, "confer": 9, "delegated": 9, "inherent": 10,
+
+    # Federalism Terms
+    "devolution": 11, "preemption": 11, "mandate": 9, "mandates": 9,
+    "categorical": 10, "grants": 7, "block": 5, "unfunded": 10,
+    "intergovernmental": 11, "cooperative": 8, "dual": 9, "marble": 6,
+    "layer": 6, "cake": 3, "picket": 8, "fence": 4,
+
+    # Civil Liberties & Rights
+    "incorporation": 10, "selective": 9, "due": 5, "substantive": 11,
+    "procedural": 10, "exclusionary": 11, "establishment": 8, "exercise": 6,
+    "expression": 7, "symbolic": 9, "speech": 5, "petition": 8, "assembly": 7,
+    "unreasonable": 8, "seizure": 9, "warrant": 9, "probable": 8, "cause": 5,
+    "incriminate": 10, "compel": 9, "testimony": 9, "jeopardy": 9,
+    "speedy": 7, "impartial": 9, "confront": 8, "cruel": 6, "unusual": 6,
+    "punishment": 6, "privacy": 7, "penumbra": 12, "emanations": 12,
+
+    # Political Participation
+    "constituency": 10, "partisan": 10, "bipartisan": 10, "nonpartisan": 10,
+    "plurality": 10, "majority": 7, "runoff": 9, "winner-take-all": 9,
+    "proportional": 9, "representation": 8, "mobilization": 10, "turnout": 8,
+    "demographics": 10, "realignment": 11, "dealignment": 11, "polarization": 10,
+
+    # Political Institutions
+    "bureaucracy": 9, "bureaucratic": 10, "discretion": 10, "discretionary": 10,
+    "implementation": 10, "rulemaking": 11, "adjudication": 11, "oversight": 9,
+    "appropriations": 11, "authorization": 10, "reauthorization": 11,
+    "confirmation": 9, "nomination": 9, "appointment": 8, "recess": 8,
+
+    # Judicial Terms
+    "writ": 10, "certiorari": 12, "amicus": 12, "curiae": 12, "brief": 8,
+    "standing": 8, "moot": 11, "ripeness": 11, "justiciable": 12,
+    "stare": 11, "decisis": 12, "originalist": 11, "textualist": 11,
+    "strict": 8, "constructionist": 11, "living": 5, "activist": 9,
+    "restraint": 9, "deference": 10, "remand": 11, "affirm": 9, "reverse": 8,
+    "dissent": 9, "concurrence": 10, "plurality": 10, "opinion": 6,
+
+    # Policy Process
+    "agenda": 8, "setting": 6, "formulation": 10, "adoption": 8,
+    "evaluate": 7, "evaluation": 9, "incrementalism": 11, "rationalism": 11,
+    "iron": 5, "triangle": 6, "subgovernment": 11, "issue": 6, "network": 7,
+
+    # Common AP Exam Verbs & Academic Language
+    "exemplify": 9, "exemplifies": 9, "necessitate": 10, "necessitates": 10,
+    "articulate": 9, "articulates": 9, "delineate": 11, "delineates": 11,
+    "enumerate": 10, "enumerates": 10, "stipulate": 10, "stipulates": 10,
+    "codify": 11, "codifies": 11, "abridge": 10, "abridges": 10,
+    "infringe": 10, "infringes": 10, "promulgate": 11, "promulgates": 11,
+    "adjudicate": 11, "adjudicates": 11, "supersede": 10, "supersedes": 10,
+    "nullify": 10, "nullifies": 10, "invalidate": 10, "invalidates": 10,
+
+    # Formal/Academic Adverbs & Connectors
+    "formally": 8, "thereby": 9, "whereas": 9, "whereby": 10, "herein": 11,
+    "thereof": 11, "therein": 11, "hereafter": 10, "aforementioned": 11,
+    "notwithstanding": 11, "pursuant": 11, "inasmuch": 11,
+}
+
+
 # ── English Language Arts Vocabulary ────────────────────────────────────────
 
 ELA_VOCABULARY = {
