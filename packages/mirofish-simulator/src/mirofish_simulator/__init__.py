@@ -1,20 +1,126 @@
 """
-MiroFish Simulator - Student population simulation for educational content evaluation.
+MiroFish Simulator - Multi-agent student simulation for educational content.
 
-Usage:
-    from mirofish_simulator import Simulator, simulate_content
+The problem with traditional LLM simulation: LLMs "cheat" - they know answers even
+when told they don't. You cannot make an LLM "not know" something through prompting.
 
-    # Quick usage
-    result = await simulate_content(
-        content={"text": "What is 2+2?", "options": ["3", "4", "5", "6"], "correct_answer": "B"},
-        population_size=30
+The solution: MISCONCEPTION MATCHING, not knowledge suppression.
+
+NEW Architecture (v2 Agentic - recommended):
+┌─────────────────────────────────────────────────────────────────────┐
+│                    AgenticOrchestrator                               │
+│                                                                      │
+│  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐            │
+│  │  DISTRACTOR  │   │   STUDENT    │   │   SELECTOR   │            │
+│  │    AGENT     │──▶│    MODEL     │──▶│    AGENT     │            │
+│  │              │   │    AGENT     │   │              │            │
+│  │ "What error  │   │ "What does   │   │ "Match       │            │
+│  │  leads to    │   │  this student│   │  misconception│           │
+│  │  each wrong  │   │  believe?"   │   │  to answer"  │            │
+│  │  answer?"    │   │              │   │              │            │
+│  └──────────────┘   └──────────────┘   └──────────────┘            │
+└─────────────────────────────────────────────────────────────────────┘
+
+Usage (v2 Agentic - recommended):
+    from mirofish_simulator import AgenticOrchestrator
+
+    orchestrator = AgenticOrchestrator()
+
+    # Single student simulation
+    result = await orchestrator.simulate(
+        question={"text": "...", "options": [...]},
+        correct_answer="B",
+        grade=5,
+        archetype="class_clown",
+    )
+    print(result.selected)                     # What they picked
+    print(result.is_correct)                   # Right/wrong
+    print(result.student_model.beliefs)        # What they believe
+    print(result.student_model.misconceptions) # Their misconceptions
+    print(result.selection_result.selection_reason)  # Why they picked this
+
+    # Batch simulation (efficient - distractor analysis done once)
+    results = await orchestrator.simulate_batch(
+        question=question,
+        correct_answer="B",
+        students=[
+            {"grade": 5, "archetype": "average_student"},
+            {"grade": 8, "archetype": "honors_overachiever"},
+            {"grade": 11, "archetype": "class_clown"},
+        ]
     )
 
-    # Full control
-    sim = Simulator(api_key="your-openai-key")
-    result = await sim.simulate(content, population_config={...})
+    # Accessibility analysis (deterministic, no LLM)
+    from mirofish_simulator import AccessibilityAnalyzer
+    analyzer = AccessibilityAnalyzer()
+    result = await analyzer.analyze(content, target_grade=5)
+    print(f"Reading Level: Grade {result.reading_level.flesch_kincaid_grade}")
 """
 
+# ── Multi-Agent Simulation (v2 Agentic - RECOMMENDED) ────────────────────────
+from .agents.v2 import (
+    # New agentic architecture (recommended)
+    AgenticOrchestrator,
+    AgenticSimulationResult,
+    DistractorAgent,
+    DistractorAnalysis,
+    DistractorMapping,
+    StudentModelAgent,
+    StudentModel,
+    SelectorAgent,
+    SelectionResult,
+    # Legacy v2 architecture (still functional)
+    StudentSimulator,
+    SimulationResult as V2SimulationResult,
+    simulate_student,
+    simulate_classroom,
+    KnowledgeAgent,
+    KnowledgeProfile,
+    PerceptionAgent,
+    PerceptionResult,
+    AnswerAgent,
+    AnswerResult,
+    VerifierAgent,
+    VerificationResult,
+)
+
+# ── Legacy Agent-Based Simulation (v1) ──────────────────────────────────────
+from .agents import (
+    StudentAgent,
+    AgentResponse,
+    AgentConfig,
+    KnowledgeBase,
+    GradeKnowledge,
+    build_knowledge_constraint,
+    PerceptionFilter,
+    PerceivedContent,
+    apply_perception_filter,
+    SimulationRunner,
+    SimulationConfig,
+    SimulationResult as AgentSimulationResult,
+    run_simulation,
+)
+
+# ── Accessibility Analysis ──────────────────────────────────────────────────
+from .accessibility import (
+    AccessibilityAnalyzer,
+    AccessibilityResult,
+    AccessibilityVerdict,
+    ReadingLevelAnalyzer,
+    ReadingLevelResult,
+    VocabularyAnalyzer,
+    VocabularyIssue,
+    PriorKnowledgeAnalyzer,
+    PriorKnowledgeResult,
+    CognitiveLoadAnalyzer,
+    CognitiveLoadResult,
+    RecommendationEngine,
+    Recommendation,
+    flesch_kincaid_grade,
+    analyze_accessibility,
+)
+
+# ── Legacy Exports (deprecated, use agents module) ──────────────────────────
 from .simulator import (
     Simulator,
     SimulationResult,
@@ -28,8 +134,92 @@ from .simulator import (
 
 from .profiles import StudentProfile, ARCHETYPE_TRAITS
 
-__version__ = "0.2.0"
+from .misconceptions import (
+    MisconceptionAnalyzer,
+    MisconceptionAnalysisResult,
+    DistractorMisconception,
+    analyze_misconceptions,
+)
+
+from .taxonomies import (
+    get_taxonomy,
+    get_misconception,
+    SUBJECT_TAXONOMIES,
+)
+
+from .comparative import (
+    ComparativeAnalyzer,
+    ComparativeAnalysisResult,
+    analyze_quiz,
+)
+
+from .cognition import (
+    CognitiveModel,
+    CognitiveLens,
+    RetentionModel,
+    RetentionContext,
+    PerceptionModel,
+    PerceivedQuestion,
+    create_cognitive_lens,
+)
+
+__version__ = "0.8.0"  # Agentic misconception-matching simulation
+
 __all__ = [
+    # Agentic Simulation (v2 - RECOMMENDED)
+    "AgenticOrchestrator",
+    "AgenticSimulationResult",
+    "DistractorAgent",
+    "DistractorAnalysis",
+    "DistractorMapping",
+    "StudentModelAgent",
+    "StudentModel",
+    "SelectorAgent",
+    "SelectionResult",
+    # Legacy Multi-Agent Simulation v2
+    "StudentSimulator",
+    "V2SimulationResult",
+    "simulate_student",
+    "simulate_classroom",
+    "KnowledgeAgent",
+    "KnowledgeProfile",
+    "PerceptionAgent",
+    "PerceptionResult",
+    "AnswerAgent",
+    "AnswerResult",
+    "VerifierAgent",
+    "VerificationResult",
+    # Legacy agent-based simulation (v1)
+    "StudentAgent",
+    "AgentResponse",
+    "AgentConfig",
+    "KnowledgeBase",
+    "GradeKnowledge",
+    "build_knowledge_constraint",
+    "PerceptionFilter",
+    "PerceivedContent",
+    "apply_perception_filter",
+    "SimulationRunner",
+    "SimulationConfig",
+    "AgentSimulationResult",
+    "run_simulation",
+    # Accessibility analysis
+    "AccessibilityAnalyzer",
+    "AccessibilityResult",
+    "AccessibilityVerdict",
+    "ReadingLevelAnalyzer",
+    "ReadingLevelResult",
+    "VocabularyAnalyzer",
+    "VocabularyIssue",
+    "PriorKnowledgeAnalyzer",
+    "PriorKnowledgeResult",
+    "CognitiveLoadAnalyzer",
+    "CognitiveLoadResult",
+    "RecommendationEngine",
+    "Recommendation",
+    "flesch_kincaid_grade",
+    "analyze_accessibility",
+    # Legacy (deprecated)
     "Simulator",
     "SimulationResult",
     "StudentResponse",
@@ -40,4 +230,25 @@ __all__ = [
     "ARCHETYPES",
     "ARCHETYPE_TRAITS",
     "DEFAULT_POPULATION",
+    # Cognitive modeling (legacy)
+    "CognitiveModel",
+    "CognitiveLens",
+    "RetentionModel",
+    "RetentionContext",
+    "PerceptionModel",
+    "PerceivedQuestion",
+    "create_cognitive_lens",
+    # Misconceptions
+    "MisconceptionAnalyzer",
+    "MisconceptionAnalysisResult",
+    "DistractorMisconception",
+    "analyze_misconceptions",
+    # Taxonomies
+    "get_taxonomy",
+    "get_misconception",
+    "SUBJECT_TAXONOMIES",
+    # Comparative analysis
+    "ComparativeAnalyzer",
+    "ComparativeAnalysisResult",
+    "analyze_quiz",
 ]

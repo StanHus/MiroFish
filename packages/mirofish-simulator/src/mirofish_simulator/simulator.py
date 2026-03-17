@@ -1,7 +1,9 @@
 """
 Core simulator for student response simulation.
 
-Uses LLM to simulate how diverse student archetypes would respond to educational content.
+Uses cognitive models (retention + perception) to simulate how diverse student
+archetypes would respond to educational content. Students answer from genuinely
+limited knowledge rather than "knowing the answer and rolling dice."
 """
 
 import asyncio
@@ -19,6 +21,7 @@ from .profiles import (
     ARCHETYPE_TRAITS,
     generate_population,
 )
+from .cognition import CognitiveModel, CognitiveLens
 
 
 # ── Constants ───────────────────────────────────────────────────────────────
@@ -52,8 +55,8 @@ class StudentResponse:
     selected_answer: str
     is_correct: bool
     confidence: float
-    time_seconds: float
-    reasoning: str = ""
+    # Cognitive model outputs (for debugging/analysis)
+    cognitive_factors: Optional[Dict[str, Any]] = None
 
 
 @dataclass
@@ -74,24 +77,28 @@ class ArchetypePerformance:
     archetype: str
     count: int
     accuracy: float
-    avg_time_seconds: float
     avg_confidence: float
 
 
 @dataclass
 class SimulationResult:
-    """Complete simulation result."""
+    """Complete simulation result.
+
+    Note: All estimates are UNCALIBRATED unless calibration data has been provided.
+    The `confidence` field indicates whether predictions have been validated against
+    real student response data.
+    """
 
     total_students: int
     accuracy: float
-    difficulty_irt: float
-    discrimination_irt: float
-    avg_time_seconds: float
+    estimated_challenge: float  # 0-1 scale, higher = harder (NOT IRT-calibrated)
+    archetype_variance: float   # Variance in performance across archetypes (NOT IRT discrimination)
     engagement_score: float
 
     by_archetype: Dict[str, ArchetypePerformance]
     distractor_analysis: Dict[str, DistractorAnalysis]
 
+    confidence: str = "uncalibrated"  # "uncalibrated" | "calibrated"
     concerns: List[str] = field(default_factory=list)
     recommendations: List[str] = field(default_factory=list)
     responses: List[StudentResponse] = field(default_factory=list)
@@ -102,16 +109,15 @@ class SimulationResult:
             "aggregate": {
                 "total_students": self.total_students,
                 "accuracy": round(self.accuracy, 3),
-                "difficulty_irt": round(self.difficulty_irt, 3),
-                "discrimination_irt": round(self.discrimination_irt, 3),
-                "avg_time_seconds": round(self.avg_time_seconds, 1),
+                "estimated_challenge": round(self.estimated_challenge, 3),
+                "archetype_variance": round(self.archetype_variance, 3),
                 "engagement_score": round(self.engagement_score, 3),
             },
+            "confidence": self.confidence,
             "by_archetype": {
                 k: {
                     "count": v.count,
                     "accuracy": round(v.accuracy, 3),
-                    "avg_time_seconds": round(v.avg_time_seconds, 1),
                     "avg_confidence": round(v.avg_confidence, 3),
                 }
                 for k, v in self.by_archetype.items()
@@ -137,6 +143,10 @@ class Simulator:
     """
     Simulates student populations responding to educational content.
 
+    Uses cognitive models (retention + perception) to create realistic student
+    responses. Instead of "knowing the answer and rolling dice," students answer
+    from genuinely limited knowledge based on their grade level and archetype.
+
     Usage:
         sim = Simulator(api_key="sk-...")
         result = await sim.simulate(content, population_config)
@@ -147,10 +157,12 @@ class Simulator:
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
         model: str = "gpt-4o-mini",
+        use_cognitive_model: bool = True,
     ):
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
         self.base_url = base_url or os.environ.get("OPENAI_BASE_URL")
         self.model = model
+        self.use_cognitive_model = use_cognitive_model
 
         if self.api_key:
             self.client = AsyncOpenAI(
@@ -159,6 +171,13 @@ class Simulator:
             )
         else:
             self.client = None
+
+        # Initialize cognitive model for realistic simulation
+        self.cognitive_model = CognitiveModel(
+            api_key=self.api_key,
+            base_url=self.base_url,
+            model=model,
+        )
 
     async def simulate(
         self,
@@ -228,26 +247,206 @@ class Simulator:
         content: Dict[str, Any],
     ) -> StudentResponse:
         """
-        Simulate a single student's response using hybrid approach.
+        Simulate a single student's response using cognitive modeling.
 
-        Hybrid approach:
-        1. LLM analyzes the appeal of each option for different student types
-        2. Archetype base_accuracy determines if student gets it correct
-        3. If incorrect, pick the most tempting distractor from LLM analysis
+        Cognitive approach (realistic):
+        1. Create cognitive lens: what does this student know/perceive?
+        2. Have LLM answer FROM THE STUDENT'S LIMITED PERSPECTIVE
+        3. Student answers based on their actual knowledge gaps, not dice rolls
+
+        This produces genuinely different answers based on what students
+        at different levels would actually know and understand.
         """
         text = content.get("text") or content.get("question", "")
         options = content.get("options", [])
         correct = content.get("correct_answer", "A")
+        grade_level = int(content.get("grade", 11))
 
         # Get correct letter
-        if correct.isalpha():
+        if isinstance(correct, str) and correct.isalpha():
             correct_letter = correct.upper()
         else:
-            correct_letter = chr(65 + int(correct))
+            try:
+                correct_letter = chr(65 + int(correct))
+            except (ValueError, TypeError):
+                correct_letter = "A"
 
         # If no LLM client, use probabilistic fallback
         if not self.client:
             return self._fallback_response(profile, options, correct)
+
+        # Use cognitive model for realistic simulation
+        if self.use_cognitive_model:
+            return await self._simulate_with_cognition(
+                profile, content, correct_letter, grade_level
+            )
+        else:
+            # Legacy approach: dice roll with distractor analysis
+            return await self._simulate_legacy(
+                profile, content, correct_letter
+            )
+
+    async def _simulate_with_cognition(
+        self,
+        profile: StudentProfile,
+        content: Dict[str, Any],
+        correct_letter: str,
+        grade_level: int,
+    ) -> StudentResponse:
+        """
+        Simulate using cognitive model - student answers from limited knowledge.
+        """
+        text = content.get("text") or content.get("question", "")
+        options = content.get("options", [])
+
+        # Create cognitive lens for this student
+        lens = await self.cognitive_model.create_lens(
+            content=content,
+            grade_level=grade_level,
+            archetype=profile.archetype,
+        )
+
+        # Now have the LLM answer AS this student with their limited knowledge
+        selected, confidence = await self._answer_with_cognitive_lens(
+            text, options, correct_letter, profile, lens
+        )
+
+        # Check if correct
+        is_correct = selected == correct_letter
+
+        return StudentResponse(
+            student_id=profile.student_id,
+            archetype=profile.archetype,
+            selected_answer=selected,
+            is_correct=is_correct,
+            confidence=confidence,
+            cognitive_factors={
+                "known_concepts": lens.retention.known_concepts[:3],
+                "unknown_concepts": lens.retention.unknown_concepts[:3],
+                "perceived_difficulty": lens.perception.perceived_difficulty,
+                "attention_level": lens.perception.attention_level,
+                "likely_errors": lens.likely_errors[:2],
+            },
+        )
+
+    async def _answer_with_cognitive_lens(
+        self,
+        text: str,
+        options: List[str],
+        correct_letter: str,
+        profile: StudentProfile,
+        lens: CognitiveLens,
+    ) -> tuple:
+        """
+        Have LLM answer from the student's limited perspective.
+
+        This is the key innovation: instead of asking the LLM "what's the right answer?"
+        we ask "what would THIS STUDENT with THESE KNOWLEDGE GAPS answer?"
+        """
+        options_text = "\n".join(
+            f"{chr(65 + i)}) {opt}" for i, opt in enumerate(options)
+        )
+
+        # Build the cognitive context
+        known = ", ".join(lens.retention.known_concepts[:5]) or "basic familiarity"
+        unknown = ", ".join(lens.retention.unknown_concepts[:5]) or "advanced details"
+        perceived = lens.perception.perceived_text
+
+        prompt = f"""You are simulating a grade {lens.retention.grade_level} student with the "{profile.archetype}" profile answering a question.
+
+IMPORTANT: You are NOT answering correctly. You are answering AS THIS STUDENT would, given their LIMITED knowledge and understanding.
+
+WHAT THIS STUDENT KNOWS:
+{known}
+
+WHAT THIS STUDENT DOES NOT KNOW:
+{unknown}
+
+HOW THIS STUDENT PERCEIVES THE QUESTION:
+"{perceived}"
+
+PERCEIVED DIFFICULTY: {lens.perception.perceived_difficulty}
+ATTENTION LEVEL: {lens.perception.attention_level:.0%}
+
+ORIGINAL QUESTION:
+{text}
+
+OPTIONS:
+{options_text}
+
+Answer AS this student would - based on what they know (and don't know).
+- If they lack knowledge, they may guess or pick something that "sounds right"
+- If they misunderstand terms, they may pick a wrong answer confidently
+- If attention is low, they may not read all options carefully
+
+Respond with JSON only:
+{{
+    "selected": "A",
+    "confidence": 0.6,
+    "student_reasoning": "Brief explanation of why THIS STUDENT picked this"
+}}"""
+
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are simulating student test-taking behavior. "
+                            "Answer as the specified student would - with their knowledge gaps, "
+                            "misunderstandings, and attention patterns. "
+                            "Do NOT answer correctly unless the student would genuinely know the answer. "
+                            "Respond ONLY with valid JSON."
+                        ),
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.7,  # Higher temp for more realistic variation
+                max_tokens=150,
+            )
+
+            result_text = response.choices[0].message.content.strip()
+
+            # Handle markdown code blocks
+            if "```" in result_text:
+                result_text = result_text.split("```")[1]
+                if result_text.startswith("json"):
+                    result_text = result_text[4:]
+
+            analysis = json.loads(result_text)
+            selected = analysis.get("selected", "A").upper()
+            confidence = analysis.get("confidence", 0.5)
+
+            # Validate selected is a valid option
+            valid_options = [chr(65 + i) for i in range(len(options))]
+            if selected not in valid_options:
+                selected = random.choice(valid_options)
+
+            return selected, confidence
+
+        except Exception:
+            # Fallback: use cognitive lens prediction
+            if lens.can_answer_correctly:
+                return correct_letter, lens.confidence_if_answers
+            else:
+                # Pick a random wrong answer
+                valid_options = [chr(65 + i) for i in range(len(options))]
+                wrong_options = [o for o in valid_options if o != correct_letter]
+                selected = random.choice(wrong_options) if wrong_options else "A"
+                return selected, 0.4 + random.uniform(0, 0.3)
+
+    async def _simulate_legacy(
+        self,
+        profile: StudentProfile,
+        content: Dict[str, Any],
+        correct_letter: str,
+    ) -> StudentResponse:
+        """
+        Legacy simulation approach: dice roll with distractor analysis.
+        Kept for comparison and fallback.
+        """
+        options = content.get("options", [])
 
         # Get distractor analysis from LLM (cached per question)
         distractor_appeal = await self._analyze_distractors(content)
@@ -261,7 +460,6 @@ class Simulator:
 
         if gets_correct:
             selected = correct_letter
-            reasoning = f"Correctly identified the answer"
             confidence = 0.7 + random.uniform(0, 0.25)
         else:
             # Pick most tempting wrong answer for this archetype
@@ -271,16 +469,7 @@ class Simulator:
                 distractor_appeal,
                 options
             )
-            reasoning = distractor_appeal.get(
-                selected,
-                {profile.archetype: "seemed plausible"}
-            ).get(profile.archetype, "seemed like a reasonable choice")
             confidence = 0.4 + random.uniform(0, 0.3)
-
-        # Time varies by engagement level
-        base_time = 45
-        time_var = (1 - traits.get("engagement", 0.5)) * 30
-        time_seconds = base_time + time_var + random.uniform(-10, 10)
 
         return StudentResponse(
             student_id=profile.student_id,
@@ -288,8 +477,6 @@ class Simulator:
             selected_answer=selected,
             is_correct=gets_correct,
             confidence=confidence,
-            time_seconds=max(10, time_seconds),
-            reasoning=reasoning,
         )
 
     async def _analyze_distractors(
@@ -421,8 +608,6 @@ Respond with JSON only:
             selected_answer=selected,
             is_correct=is_correct,
             confidence=0.5 + (0.3 if is_correct else -0.2),
-            time_seconds=60 - (profile.engagement_level * 30) + random.uniform(-10, 10),
-            reasoning="(simulated)",
         )
 
     def _check_correct(self, selected: str, correct: str, options: List[str]) -> bool:
@@ -447,39 +632,38 @@ Respond with JSON only:
             return SimulationResult(
                 total_students=0,
                 accuracy=0,
-                difficulty_irt=0,
-                discrimination_irt=0,
-                avg_time_seconds=0,
+                estimated_challenge=0.5,
+                archetype_variance=0,
                 engagement_score=0,
                 by_archetype={},
                 distractor_analysis={},
+                confidence="uncalibrated",
             )
 
         total = len(responses)
         correct_count = sum(1 for r in responses if r.is_correct)
         accuracy = correct_count / total
 
-        # IRT difficulty estimate
-        p = max(0.01, min(0.99, accuracy))
-        difficulty_irt = -1 * (p - 0.5) * 4
+        # Estimated challenge: 0-1 scale, higher = harder
+        # Simple inverse of accuracy (NOT a calibrated IRT parameter)
+        estimated_challenge = 1.0 - accuracy
 
-        # IRT discrimination (variance-based)
+        # Archetype variance: variance in accuracy across student types
+        # Higher values indicate the question differentiates between archetypes
         arch_groups: Dict[str, List[StudentResponse]] = {}
         for r in responses:
             if r.archetype not in arch_groups:
                 arch_groups[r.archetype] = []
             arch_groups[r.archetype].append(r)
 
-        variance = 0
+        archetype_variance = 0.0
         if len(arch_groups) > 1:
             means = [
                 sum(1 for r in g if r.is_correct) / len(g)
                 for g in arch_groups.values()
             ]
             mean_of_means = sum(means) / len(means)
-            variance = sum((m - mean_of_means) ** 2 for m in means) / len(means)
-
-        discrimination_irt = 1.0 + (variance * 10)
+            archetype_variance = sum((m - mean_of_means) ** 2 for m in means) / len(means)
 
         # Archetype breakdown
         by_archetype: Dict[str, ArchetypePerformance] = {}
@@ -489,7 +673,6 @@ Respond with JSON only:
                 archetype=arch,
                 count=n,
                 accuracy=sum(1 for r in group if r.is_correct) / n,
-                avg_time_seconds=sum(r.time_seconds for r in group) / n,
                 avg_confidence=sum(r.confidence for r in group) / n,
             )
 
@@ -535,7 +718,7 @@ Respond with JSON only:
         concerns = []
         recommendations = []
 
-        if variance > 0.04:
+        if archetype_variance > 0.04:
             concerns.append("High accuracy variance across archetypes")
 
         for arch, perf in by_archetype.items():
@@ -549,7 +732,6 @@ Respond with JSON only:
             concerns.append("Overall accuracy very high (>90%)")
             recommendations.append("Consider increasing complexity")
 
-        avg_time = sum(r.time_seconds for r in responses) / total
         avg_engagement = sum(
             ARCHETYPE_TRAITS.get(r.archetype, {}).get("engagement", 0.5)
             for r in responses
@@ -558,12 +740,12 @@ Respond with JSON only:
         return SimulationResult(
             total_students=total,
             accuracy=accuracy,
-            difficulty_irt=difficulty_irt,
-            discrimination_irt=discrimination_irt,
-            avg_time_seconds=avg_time,
+            estimated_challenge=estimated_challenge,
+            archetype_variance=archetype_variance,
             engagement_score=avg_engagement,
             by_archetype=by_archetype,
             distractor_analysis=distractor_analysis,
+            confidence="uncalibrated",
             concerns=concerns,
             recommendations=recommendations,
         )
