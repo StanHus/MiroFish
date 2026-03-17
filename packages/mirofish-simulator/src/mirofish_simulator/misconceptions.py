@@ -298,5 +298,7 @@ async def analyze_misconceptions(
     Returns:
         MisconceptionAnalysisResult with distractor mappings
     """
-    analyzer = MisconceptionAnalyzer(api_key=api_key)
+    import os
+    key = api_key or os.environ.get("OPENAI_API_KEY")
+    analyzer = MisconceptionAnalyzer(api_key=key)
     return await analyzer.analyze(content)
