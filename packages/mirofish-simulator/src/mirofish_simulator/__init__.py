@@ -6,7 +6,7 @@ when told they don't. You cannot make an LLM "not know" something through prompt
 
 The solution: MISCONCEPTION MATCHING, not knowledge suppression.
 
-NEW Architecture (v2 Agentic - recommended):
+Architecture:
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    AgenticOrchestrator                               │
 │                                                                      │
@@ -21,7 +21,7 @@ NEW Architecture (v2 Agentic - recommended):
 │  └──────────────┘   └──────────────┘   └──────────────┘            │
 └─────────────────────────────────────────────────────────────────────┘
 
-Usage (v2 Agentic - recommended):
+Usage:
     from mirofish_simulator import AgenticOrchestrator
 
     orchestrator = AgenticOrchestrator()
@@ -57,9 +57,8 @@ Usage (v2 Agentic - recommended):
     print(f"Reading Level: Grade {result.reading_level.flesch_kincaid_grade}")
 """
 
-# ── Multi-Agent Simulation (v2 Agentic - RECOMMENDED) ────────────────────────
+# ── Multi-Agent Simulation ────────────────────────────────────────────────────
 from .agents.v2 import (
-    # New agentic architecture (recommended)
     AgenticOrchestrator,
     AgenticSimulationResult,
     DistractorAgent,
@@ -69,7 +68,6 @@ from .agents.v2 import (
     StudentModel,
     SelectorAgent,
     SelectionResult,
-    # Legacy v2 architecture (still functional)
     StudentSimulator,
     SimulationResult as V2SimulationResult,
     simulate_student,
@@ -82,23 +80,6 @@ from .agents.v2 import (
     AnswerResult,
     VerifierAgent,
     VerificationResult,
-)
-
-# ── Legacy Agent-Based Simulation (v1) ──────────────────────────────────────
-from .agents import (
-    StudentAgent,
-    AgentResponse,
-    AgentConfig,
-    KnowledgeBase,
-    GradeKnowledge,
-    build_knowledge_constraint,
-    PerceptionFilter,
-    PerceivedContent,
-    apply_perception_filter,
-    SimulationRunner,
-    SimulationConfig,
-    SimulationResult as AgentSimulationResult,
-    run_simulation,
 )
 
 # ── Accessibility Analysis ──────────────────────────────────────────────────
@@ -120,7 +101,7 @@ from .accessibility import (
     analyze_accessibility,
 )
 
-# ── Legacy Exports (deprecated, use agents module) ──────────────────────────
+# ── Core Simulation ──────────────────────────────────────────────────────────
 from .simulator import (
     Simulator,
     SimulationResult,
@@ -176,7 +157,7 @@ __all__ = [
     "StudentModel",
     "SelectorAgent",
     "SelectionResult",
-    # Legacy Multi-Agent Simulation v2
+    # Multi-Agent Pipeline
     "StudentSimulator",
     "V2SimulationResult",
     "simulate_student",
@@ -189,20 +170,6 @@ __all__ = [
     "AnswerResult",
     "VerifierAgent",
     "VerificationResult",
-    # Legacy agent-based simulation (v1)
-    "StudentAgent",
-    "AgentResponse",
-    "AgentConfig",
-    "KnowledgeBase",
-    "GradeKnowledge",
-    "build_knowledge_constraint",
-    "PerceptionFilter",
-    "PerceivedContent",
-    "apply_perception_filter",
-    "SimulationRunner",
-    "SimulationConfig",
-    "AgentSimulationResult",
-    "run_simulation",
     # Accessibility analysis
     "AccessibilityAnalyzer",
     "AccessibilityResult",
@@ -219,7 +186,7 @@ __all__ = [
     "Recommendation",
     "flesch_kincaid_grade",
     "analyze_accessibility",
-    # Legacy (deprecated)
+    # Core simulation
     "Simulator",
     "SimulationResult",
     "StudentResponse",
@@ -230,7 +197,7 @@ __all__ = [
     "ARCHETYPES",
     "ARCHETYPE_TRAITS",
     "DEFAULT_POPULATION",
-    # Cognitive modeling (legacy)
+    # Cognitive modeling
     "CognitiveModel",
     "CognitiveLens",
     "RetentionModel",

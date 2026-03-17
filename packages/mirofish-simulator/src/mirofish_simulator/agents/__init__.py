@@ -1,80 +1,69 @@
 """
-MiroFish Agent-Based Simulation.
+MiroFish Agent-Based Simulation (v2 Agentic Architecture).
 
 The core insight: LLMs know everything, but students don't.
-
-To simulate a student, we create an LLM agent that:
-1. Only has access to knowledge a student at that grade would have
-2. Perceives text through the filter of their reading level
-3. Actually attempts to answer - and genuinely gets things wrong
-
-This is NOT:
-- Static analysis (measuring text properties)
-- Probabilistic dice rolls (random based on accuracy rates)
-- Asking "what would a student pick?" (LLM still knows the answer)
-
-This IS:
-- An agent with constrained knowledge attempting to answer
-- The agent doesn't know the right answer
-- Errors come from genuine knowledge gaps
+Instead of suppressing LLM knowledge (impossible), we use a multi-agent
+pipeline that matches student misconceptions to wrong answers.
 
 Usage:
-    from mirofish_simulator.agents import StudentAgent, run_simulation
+    from mirofish_simulator import AgenticOrchestrator
 
-    agent = StudentAgent(
+    orchestrator = AgenticOrchestrator()
+    result = await orchestrator.simulate(
+        question={"text": "...", "options": [...]},
+        correct_answer="B",
         grade=5,
-        archetype="esl_student",
-        api_key="sk-..."
+        archetype="class_clown",
     )
-
-    response = await agent.answer(question)
-    print(response.selected)      # "B" (might be wrong!)
-    print(response.reasoning)     # Why they picked it
-    print(response.knowledge_used)  # What they knew
-    print(response.knowledge_gaps)  # What they didn't know
 """
 
-from .student_agent import (
-    StudentAgent,
-    AgentResponse,
-    AgentConfig,
-)
-
-from .knowledge import (
-    KnowledgeBase,
-    GradeKnowledge,
-    build_knowledge_constraint,
-)
-
-from .perception import (
-    PerceptionFilter,
-    PerceivedContent,
-    apply_perception_filter,
-)
-
-from .runner import (
-    SimulationRunner,
-    SimulationConfig,
+from .v2 import (
+    AgenticOrchestrator,
+    AgenticSimulationResult,
+    DistractorAgent,
+    DistractorAnalysis,
+    DistractorMapping,
+    StudentModelAgent,
+    StudentModel,
+    SelectorAgent,
+    SelectionResult,
+    StudentSimulator,
     SimulationResult,
-    run_simulation,
+    simulate_student,
+    simulate_classroom,
+    KnowledgeAgent,
+    KnowledgeProfile,
+    PerceptionAgent,
+    PerceptionResult,
+    AnswerAgent,
+    AnswerResult,
+    VerifierAgent,
+    VerificationResult,
 )
 
 __all__ = [
-    # Core agent
-    "StudentAgent",
-    "AgentResponse",
-    "AgentConfig",
-    # Knowledge
-    "KnowledgeBase",
-    "GradeKnowledge",
-    "build_knowledge_constraint",
-    # Perception
-    "PerceptionFilter",
-    "PerceivedContent",
-    "apply_perception_filter",
-    # Runner
-    "SimulationRunner",
-    "SimulationConfig",
+    # Agentic orchestrator (recommended)
+    "AgenticOrchestrator",
+    "AgenticSimulationResult",
+    # Agents
+    "DistractorAgent",
+    "DistractorAnalysis",
+    "DistractorMapping",
+    "StudentModelAgent",
+    "StudentModel",
+    "SelectorAgent",
+    "SelectionResult",
+    "KnowledgeAgent",
+    "KnowledgeProfile",
+    "PerceptionAgent",
+    "PerceptionResult",
+    "AnswerAgent",
+    "AnswerResult",
+    "VerifierAgent",
+    "VerificationResult",
+    # Convenience
+    "StudentSimulator",
     "SimulationResult",
-    "run_simulation",
+    "simulate_student",
+    "simulate_classroom",
 ]
