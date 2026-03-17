@@ -39,6 +39,13 @@ from .agentic_orchestrator import AgenticOrchestrator, AgenticSimulationResult
 from .distractor_agent import DistractorAgent, DistractorAnalysis, DistractorMapping
 from .student_model_agent import StudentModelAgent, StudentModel
 from .selector_agent import SelectorAgent, SelectionResult
+from .experience_agent import (
+    ExperienceAgent,
+    ExperienceResult,
+    ExperienceAssessment,
+    assess_question_experience,
+    DIVERSE_STUDENTS,
+)
 
 # Legacy architecture (still functional)
 from .orchestrator import (
@@ -63,6 +70,11 @@ __all__ = [
     "StudentModel",
     "SelectorAgent",
     "SelectionResult",
+    "ExperienceAgent",
+    "ExperienceResult",
+    "ExperienceAssessment",
+    "assess_question_experience",
+    "DIVERSE_STUDENTS",
     # LEGACY: Original architecture
     "StudentSimulator",
     "SimulationResult",
