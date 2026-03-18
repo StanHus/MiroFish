@@ -139,6 +139,9 @@ from .comparative import (
     analyze_quiz,
 )
 
+from .adversarial import AdversarialSwarm
+from .memory import AgentMemory
+
 from .cognition import (
     CognitiveModel,
     CognitiveLens,
@@ -149,7 +152,7 @@ from .cognition import (
     create_cognitive_lens,
 )
 
-__version__ = "0.8.0"  # Agentic misconception-matching simulation
+__version__ = "0.9.0"  # Added AdversarialSwarm + AgentMemory
 
 __all__ = [
     # Agentic Simulation (v2 - RECOMMENDED)
@@ -229,4 +232,8 @@ __all__ = [
     "ComparativeAnalyzer",
     "ComparativeAnalysisResult",
     "analyze_quiz",
+    # Adversarial testing
+    "AdversarialSwarm",
+    # Agent memory
+    "AgentMemory",
 ]
