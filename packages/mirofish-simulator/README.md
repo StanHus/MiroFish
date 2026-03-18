@@ -229,6 +229,73 @@ result.to_dict()             # Full dict representation
 result.summary()             # Human-readable summary
 ```
 
+## Batch Health Analysis (Cost-Efficient)
+
+For batch-level swarm intelligence that analyzes patterns across questions:
+
+```python
+from mirofish_simulator import BatchHealthAnalyzer
+
+analyzer = BatchHealthAnalyzer()
+
+# Analyze a batch of questions
+report = await analyzer.analyze(
+    questions=[q1, q2, q3, ...],
+    curriculum_context={
+        "standards": ["CCSS.MATH.3.OA.A.1", ...],
+        "grade": "5",
+    }
+)
+
+# Which questions need expensive evaluation?
+print(report.questions_needing_attention)  # ["q3", "q7"]
+
+# Actionable feedback for the generator
+print(report.generator_feedback)
+# ["50% of questions have longest answer correct (expect ~25%)",
+#  "Position bias detected: {'D': 4, 'B': 1}"]
+
+# Routing hints for evaluators
+print(report.get_routing_hints())
+# {"q3": ["reading_question_qc"], "q7": ["ti_question_qa"]}
+```
+
+### How It Works
+
+**Phase 1: FREE heuristics (no LLM calls)**
+- Longest answer correct rate (expect ~25%)
+- Grammar cues (a/an article agreement)
+- Position bias in correct answers
+- Absolute terms in correct answers
+- Similar stems (redundancy)
+- Option length variance
+
+**Phase 2: ONE LLM call (optional, auto-triggered)**
+- Coverage gap analysis
+- Concept redundancy detection
+- Generator feedback synthesis
+
+### Cost Model
+
+```
+Traditional:  N questions × 5 LLM calls = 5N calls
+BatchHealth:  Heuristics (free) + 1 batch call + selective deep dives
+Savings:      30-70% reduction in API costs
+```
+
+### Integration with Evaluators
+
+```python
+# Route expensive evaluators only where needed
+report = await analyzer.analyze(questions)
+
+for question in questions:
+    if question["id"] in report.questions_needing_attention:
+        run_full_pipeline(question)  # Expensive
+    else:
+        run_light_check(question)    # Cheap
+```
+
 ## Accessibility Analysis (Static)
 
 For deterministic content analysis without LLM:
@@ -245,7 +312,18 @@ print(f"Vocabulary Issues: {len(result.vocabulary.issues)}")
 
 ## Version History
 
-### v0.8.0 (Current)
+### v0.10.0 (Current)
+- **BatchHealthAnalyzer** - Batch-level swarm intelligence
+- FREE heuristics detect test-wiseness exploits
+- ONE LLM call for batch-level analysis
+- Generator feedback and evaluator routing hints
+- 30-70% cost reduction vs per-question evaluation
+
+### v0.9.0
+- AdversarialSwarm for ambiguity detection
+- AgentMemory for calibration
+
+### v0.8.0
 - **Agentic misconception-matching architecture**
 - DistractorAgent, StudentModelAgent, SelectorAgent
 - Factual vs conceptual question handling
