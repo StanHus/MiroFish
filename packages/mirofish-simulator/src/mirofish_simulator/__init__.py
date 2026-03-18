@@ -6,6 +6,30 @@ when told they don't. You cannot make an LLM "not know" something through prompt
 
 The solution: MISCONCEPTION MATCHING, not knowledge suppression.
 
+== BATCH-LEVEL SWARM INTELLIGENCE ==
+
+The BatchHealthAnalyzer provides cost-efficient batch analysis:
+- FREE heuristics detect patterns without any LLM calls
+- ONE LLM call analyzes the entire batch holistically
+- Output: which questions need attention + generator feedback
+
+    from mirofish_simulator import BatchHealthAnalyzer
+
+    analyzer = BatchHealthAnalyzer()
+    report = await analyzer.analyze(
+        questions=[q1, q2, q3, ...],
+        curriculum_context={"standards": ["CCSS.MATH.3.OA.A.1", ...]}
+    )
+
+    print(report.questions_needing_attention)  # Only these need deep analysis
+    print(report.generator_feedback)           # Actionable feedback for generator
+
+Cost model:
+    Current per-question:  N questions × 5 LLM calls = 5N calls
+    BatchHealthAnalyzer:   Heuristics (free) + 1 call + selective deep dives
+
+== PER-QUESTION SIMULATION ==
+
 Architecture:
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    AgenticOrchestrator                               │
@@ -139,6 +163,13 @@ from .comparative import (
     analyze_quiz,
 )
 
+from .batch_health import (
+    BatchHealthAnalyzer,
+    BatchHealthReport,
+    PatternFindings,
+    analyze_batch,
+)
+
 from .adversarial import AdversarialSwarm
 from .memory import AgentMemory
 
@@ -152,7 +183,7 @@ from .cognition import (
     create_cognitive_lens,
 )
 
-__version__ = "0.9.0"  # Added AdversarialSwarm + AgentMemory
+__version__ = "0.10.0"  # Added BatchHealthAnalyzer - batch-level swarm intelligence
 
 __all__ = [
     # Agentic Simulation (v2 - RECOMMENDED)
@@ -232,6 +263,11 @@ __all__ = [
     "ComparativeAnalyzer",
     "ComparativeAnalysisResult",
     "analyze_quiz",
+    # Batch health (swarm intelligence)
+    "BatchHealthAnalyzer",
+    "BatchHealthReport",
+    "PatternFindings",
+    "analyze_batch",
     # Adversarial testing
     "AdversarialSwarm",
     # Agent memory
