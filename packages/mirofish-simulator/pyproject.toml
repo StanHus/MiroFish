@@ -1,6 +1,6 @@
 [project]
 name = "mirofish-simulator"
-version = "0.10.0"
+version = "0.10.1"
 description = "Agentic student simulation using misconception matching - realistic wrong answers without LLM cheating"
 readme = "README.md"
 requires-python = ">=3.10"

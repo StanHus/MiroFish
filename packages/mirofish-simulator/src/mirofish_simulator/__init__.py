@@ -173,6 +173,12 @@ from .batch_health import (
 from .adversarial import AdversarialSwarm
 from .memory import AgentMemory
 
+# Compatibility layer for InceptBench
+from .compat import (
+    StructuralAnalyzer,
+    parse_question,
+)
+
 from .cognition import (
     CognitiveModel,
     CognitiveLens,
@@ -183,7 +189,7 @@ from .cognition import (
     create_cognitive_lens,
 )
 
-__version__ = "0.10.0"  # Added BatchHealthAnalyzer - batch-level swarm intelligence
+__version__ = "0.10.1"  # Added StructuralAnalyzer, parse_question for InceptBench compat
 
 __all__ = [
     # Agentic Simulation (v2 - RECOMMENDED)
@@ -272,4 +278,7 @@ __all__ = [
     "AdversarialSwarm",
     # Agent memory
     "AgentMemory",
+    # Compatibility (InceptBench)
+    "StructuralAnalyzer",
+    "parse_question",
 ]
