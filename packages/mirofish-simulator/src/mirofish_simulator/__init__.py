@@ -178,7 +178,10 @@ from .compat import (
     StructuralAnalyzer,
     parse_question,
     analyze_question,
+    analyze_question_string,
+    analyze_batch_health,
     QuestionAnalysisResult,
+    BatchHealthResult,
 )
 
 from .cognition import (
@@ -191,7 +194,7 @@ from .cognition import (
     create_cognitive_lens,
 )
 
-__version__ = "0.11.0"  # Added analyze_question() high-level API
+__version__ = "0.12.0"  # Added get_scores(), analyze_question_string(), analyze_batch_health()
 
 __all__ = [
     # Agentic Simulation (v2 - RECOMMENDED)
@@ -285,5 +288,8 @@ __all__ = [
     "parse_question",
     # High-level API
     "analyze_question",
+    "analyze_question_string",
+    "analyze_batch_health",
     "QuestionAnalysisResult",
+    "BatchHealthResult",
 ]

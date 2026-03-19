@@ -293,6 +293,47 @@ class QuestionAnalysisResult:
             "errors": self.errors,
         }
 
+    def get_scores(self) -> Dict[str, float]:
+        """
+        Extract 0-1 scores from all analyses.
+
+        Returns dict with keys: accessibility, structural, adversarial, simulation
+        Missing analyses return None values.
+
+        Example:
+            result = await analyze_question(q)
+            scores = result.get_scores()
+            # {"accessibility": 0.85, "structural": 0.7, "adversarial": 1.0, "simulation": 0.6}
+        """
+        scores: Dict[str, Optional[float]] = {}
+
+        # Accessibility score
+        if self.accessibility:
+            scores["accessibility"] = self.accessibility.get("accessibility_score")
+        else:
+            scores["accessibility"] = None
+
+        # Structural score (coverage)
+        if self.structural:
+            scores["structural"] = self.structural.get("coverage_score")
+        else:
+            scores["structural"] = None
+
+        # Adversarial score (1.0 if CLEAR, 0.0 otherwise)
+        if self.adversarial:
+            verdict = self.adversarial.get("verdict", "UNKNOWN")
+            scores["adversarial"] = 1.0 if verdict == "CLEAR" else 0.0
+        else:
+            scores["adversarial"] = None
+
+        # Simulation score (accuracy)
+        if self.simulation:
+            scores["simulation"] = self.simulation.get("accuracy")
+        else:
+            scores["simulation"] = None
+
+        return scores
+
 
 async def analyze_question(
     question: Union[str, Dict[str, Any]],
@@ -361,6 +402,45 @@ async def analyze_question(
                 setattr(result, name, res)
 
     return result
+
+
+async def analyze_question_string(
+    content: str,
+    target_grade: Optional[int] = None,
+    run_accessibility: bool = True,
+    run_structural: bool = True,
+    run_adversarial: bool = True,
+    run_simulation: bool = True,
+) -> QuestionAnalysisResult:
+    """
+    Analyze a question from raw string content.
+
+    Convenience wrapper that parses the string and runs analysis.
+    Simpler than analyze_question() when you have raw JSON strings.
+
+    Args:
+        content: JSON string or question text
+        target_grade: Target grade level
+        run_*: Which analyses to run
+
+    Returns:
+        QuestionAnalysisResult with scores accessible via get_scores()
+
+    Example:
+        from mirofish_simulator import analyze_question_string
+
+        result = await analyze_question_string(json_content, target_grade=5)
+        scores = result.get_scores()
+        print(f"Accessibility: {scores['accessibility']}")
+    """
+    return await analyze_question(
+        question=content,
+        target_grade=target_grade,
+        run_accessibility=run_accessibility,
+        run_structural=run_structural,
+        run_adversarial=run_adversarial,
+        run_simulation=run_simulation,
+    )
 
 
 async def _run_accessibility(
@@ -451,3 +531,75 @@ async def _run_simulation(
         "by_archetype": by_archetype,
         "difficulty_estimate": 1 - (correct / total) if total > 0 else 0.5,
     }
+
+
+@dataclass
+class BatchHealthResult:
+    """Result from analyze_batch_health()."""
+
+    questions_needing_attention: List[str]
+    generator_feedback: List[str]
+    risk_score: float
+    patterns: Optional[Dict[str, Any]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "questions_needing_attention": self.questions_needing_attention,
+            "generator_feedback": self.generator_feedback,
+            "risk_score": self.risk_score,
+            "patterns": self.patterns,
+        }
+
+
+async def analyze_batch_health(
+    contents: List[str],
+    ids: Optional[List[str]] = None,
+) -> BatchHealthResult:
+    """
+    Analyze batch health from raw content strings.
+
+    Parses each string, runs heuristics, identifies questions needing attention.
+    This is FREE (no LLM calls) - just pattern detection.
+
+    Args:
+        contents: List of JSON strings or question content
+        ids: Optional list of IDs (auto-generated if not provided)
+
+    Returns:
+        BatchHealthResult with flagged questions and generator feedback
+
+    Example:
+        from mirofish_simulator import analyze_batch_health
+
+        result = await analyze_batch_health(json_strings)
+        skip_ids = set(result.questions_needing_attention)
+        # Only run deep analysis on flagged questions
+    """
+    from .batch_health import BatchHealthAnalyzer
+
+    # Parse all questions
+    questions = []
+    for i, content in enumerate(contents):
+        parsed = parse_question(content)
+        if parsed:
+            qid = ids[i] if ids and i < len(ids) else f"q{i}"
+            parsed["id"] = qid
+            questions.append(parsed)
+
+    if not questions:
+        return BatchHealthResult(
+            questions_needing_attention=[],
+            generator_feedback=["No valid questions to analyze"],
+            risk_score=0.0,
+        )
+
+    # Run batch health analyzer
+    analyzer = BatchHealthAnalyzer()
+    report = await analyzer.analyze(questions)
+
+    return BatchHealthResult(
+        questions_needing_attention=list(report.questions_needing_attention),
+        generator_feedback=report.generator_feedback,
+        risk_score=report.patterns.risk_score if report.patterns else 0.0,
+        patterns=report.patterns.__dict__ if report.patterns else None,
+    )
