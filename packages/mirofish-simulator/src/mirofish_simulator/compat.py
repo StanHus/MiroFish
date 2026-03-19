@@ -1,17 +1,24 @@
 """
 Compatibility layer for InceptBench integration.
 
-Provides aliases and helper functions expected by InceptBench:
+High-level API:
+    from mirofish_simulator import analyze_question
+    result = await analyze_question(question_dict)
+
+Lower-level:
 - StructuralAnalyzer (alias for MisconceptionAnalyzer)
 - parse_question (question parsing helper)
-- analyze_sync methods
 """
 
 import asyncio
 import json
+import logging
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
 from .misconceptions import MisconceptionAnalyzer, MisconceptionAnalysisResult
+
+logger = logging.getLogger(__name__)
 
 
 def parse_question(content: Union[str, Dict[str, Any]]) -> Optional[Dict[str, Any]]:
@@ -256,3 +263,191 @@ try:
     add_sync_method_to_accessibility_analyzer()
 except Exception:
     pass  # Ignore if accessibility module not loaded yet
+
+
+@dataclass
+class QuestionAnalysisResult:
+    """Unified result from analyze_question()."""
+
+    # Accessibility (FREE - deterministic)
+    accessibility: Optional[Dict[str, Any]] = None
+
+    # Structural analysis (misconception mapping)
+    structural: Optional[Dict[str, Any]] = None
+
+    # Adversarial testing (defensibility of wrong answers)
+    adversarial: Optional[Dict[str, Any]] = None
+
+    # Student simulation (archetype predictions)
+    simulation: Optional[Dict[str, Any]] = None
+
+    # Errors encountered
+    errors: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "accessibility": self.accessibility,
+            "structural": self.structural,
+            "adversarial": self.adversarial,
+            "simulation": self.simulation,
+            "errors": self.errors,
+        }
+
+
+async def analyze_question(
+    question: Union[str, Dict[str, Any]],
+    target_grade: Optional[int] = None,
+    run_accessibility: bool = True,
+    run_structural: bool = True,
+    run_adversarial: bool = True,
+    run_simulation: bool = True,
+    simulation_archetypes: Optional[List[str]] = None,
+) -> QuestionAnalysisResult:
+    """
+    High-level API: Run all analyses on a question in one call.
+
+    Args:
+        question: Question dict or JSON string
+        target_grade: Target grade level (affects accessibility + simulation)
+        run_accessibility: Run FREE accessibility analysis
+        run_structural: Run structural/misconception analysis (+1 LLM)
+        run_adversarial: Run adversarial testing (+4 LLM)
+        run_simulation: Run student simulation (+3 LLM)
+        simulation_archetypes: Which archetypes to simulate (default: diverse set)
+
+    Returns:
+        QuestionAnalysisResult with all analysis results
+
+    Example:
+        from mirofish_simulator import analyze_question
+
+        result = await analyze_question(question_dict, target_grade=5)
+        print(result.accessibility)  # Reading level, vocabulary
+        print(result.structural)     # Misconception mapping
+        print(result.adversarial)    # Defensibility of wrong answers
+        print(result.simulation)     # Archetype predictions
+    """
+    result = QuestionAnalysisResult()
+
+    # Parse question
+    parsed = parse_question(question)
+    if not parsed:
+        result.errors.append("Failed to parse question")
+        return result
+
+    # Build tasks
+    tasks = {}
+
+    if run_accessibility:
+        tasks["accessibility"] = _run_accessibility(parsed, target_grade)
+
+    if run_structural:
+        tasks["structural"] = _run_structural(parsed)
+
+    if run_adversarial:
+        tasks["adversarial"] = _run_adversarial(parsed)
+
+    if run_simulation:
+        tasks["simulation"] = _run_simulation(parsed, target_grade, simulation_archetypes)
+
+    # Run in parallel
+    if tasks:
+        results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+        for name, res in zip(tasks.keys(), results):
+            if isinstance(res, Exception):
+                result.errors.append(f"{name}: {res}")
+                logger.warning(f"Analysis {name} failed: {res}")
+            else:
+                setattr(result, name, res)
+
+    return result
+
+
+async def _run_accessibility(
+    question: Dict[str, Any],
+    target_grade: Optional[int],
+) -> Dict[str, Any]:
+    """Run accessibility analysis."""
+    from .accessibility import AccessibilityAnalyzer
+
+    analyzer = AccessibilityAnalyzer()
+    result = await analyzer.analyze(question, target_grade=target_grade)
+    return result.to_dict()
+
+
+async def _run_structural(question: Dict[str, Any]) -> Dict[str, Any]:
+    """Run structural/misconception analysis."""
+    analyzer = StructuralAnalyzer()
+    return await analyzer.analyze(question)
+
+
+async def _run_adversarial(question: Dict[str, Any]) -> Dict[str, Any]:
+    """Run adversarial testing."""
+    from .adversarial import AdversarialSwarm
+
+    swarm = AdversarialSwarm()
+    result = await swarm.test(question)
+    return result
+
+
+async def _run_simulation(
+    question: Dict[str, Any],
+    target_grade: Optional[int],
+    archetypes: Optional[List[str]],
+) -> Dict[str, Any]:
+    """Run student simulation."""
+    from .agents.v2 import AgenticOrchestrator
+
+    orchestrator = AgenticOrchestrator()
+
+    # Build student cohort
+    if archetypes:
+        students = [
+            {"grade": target_grade or 8, "archetype": arch}
+            for arch in archetypes
+        ]
+    elif target_grade:
+        students = [
+            {"grade": target_grade, "archetype": "average_student"},
+            {"grade": target_grade, "archetype": "class_clown"},
+            {"grade": target_grade, "archetype": "honors_overachiever"},
+            {"grade": target_grade, "archetype": "esl_student"},
+            {"grade": max(3, target_grade - 2), "archetype": "average_student"},
+            {"grade": min(12, target_grade + 2), "archetype": "average_student"},
+        ]
+    else:
+        students = [
+            {"grade": 5, "archetype": "average_student"},
+            {"grade": 8, "archetype": "average_student"},
+            {"grade": 8, "archetype": "honors_overachiever"},
+            {"grade": 11, "archetype": "class_clown"},
+        ]
+
+    results = await orchestrator.simulate_batch(
+        question=question,
+        correct_answer=question.get("correct_answer"),
+        students=students,
+    )
+
+    # Aggregate results
+    total = len(results)
+    correct = sum(1 for r in results if r.is_correct)
+
+    by_archetype: Dict[str, Dict[str, Any]] = {}
+    for r in results:
+        arch = r.archetype
+        if arch not in by_archetype:
+            by_archetype[arch] = {"correct": 0, "total": 0}
+        by_archetype[arch]["total"] += 1
+        if r.is_correct:
+            by_archetype[arch]["correct"] += 1
+
+    for arch, data in by_archetype.items():
+        data["accuracy"] = data["correct"] / data["total"] if data["total"] > 0 else 0
+
+    return {
+        "accuracy": correct / total if total > 0 else 0,
+        "total_simulated": total,
+        "by_archetype": by_archetype,
+        "difficulty_estimate": 1 - (correct / total) if total > 0 else 0.5,
+    }

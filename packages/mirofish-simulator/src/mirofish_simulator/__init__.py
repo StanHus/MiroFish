@@ -177,6 +177,8 @@ from .memory import AgentMemory
 from .compat import (
     StructuralAnalyzer,
     parse_question,
+    analyze_question,
+    QuestionAnalysisResult,
 )
 
 from .cognition import (
@@ -189,7 +191,7 @@ from .cognition import (
     create_cognitive_lens,
 )
 
-__version__ = "0.10.1"  # Added StructuralAnalyzer, parse_question for InceptBench compat
+__version__ = "0.11.0"  # Added analyze_question() high-level API
 
 __all__ = [
     # Agentic Simulation (v2 - RECOMMENDED)
@@ -281,4 +283,7 @@ __all__ = [
     # Compatibility (InceptBench)
     "StructuralAnalyzer",
     "parse_question",
+    # High-level API
+    "analyze_question",
+    "QuestionAnalysisResult",
 ]
